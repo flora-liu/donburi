@@ -1,0 +1,6 @@
+{"timestamp":"106:35:28.008","source":"Browser","level":"ERROR","message":"Failed to fetch RSC payload for http://localhost:3000/. Falling back to browser navigation. {}"}
+{"timestamp":"106:35:28.013","source":"Browser","level":"ERROR","message":"Failed to fetch RSC payload for http://localhost:3000/room/NG5QK. Falling back to browser navigation. {}"}
+{"timestamp":"106:35:28.017","source":"Browser","level":"ERROR","message":"Failed to fetch RSC payload for http://localhost:3000/room/NG5QK. Falling back to browser navigation. {}"}
+{"timestamp":"106:35:28.022","source":"Browser","level":"ERROR","message":"Failed to fetch RSC payload for http://localhost:3000/room/NG5QK. Falling back to browser navigation. {}"}
+{"timestamp":"106:35:28.024","source":"Browser","level":"ERROR","message":"Failed to fetch RSC payload for http://localhost:3000/room/NG5QK. Falling back to browser navigation. {}"}
+{"timestamp":"106:35:29.917","source":"Server","level":"LOG","message":"○ Compiling /_not-found/page ..."}

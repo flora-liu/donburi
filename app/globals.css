@@ -1,24 +1,26 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: 'BigBird';
-  src: url('/fonts/TAYBigBirdRegular.woff2') format('woff2'),
-       url('/fonts/TAYBigBirdRegular.woff') format('woff'),
-       local('Big Bird Standard');
+  font-family: "BigBird";
+  src:
+    url("/fonts/TAYBigBirdRegular.woff2") format("woff2"),
+    url("/fonts/TAYBigBirdRegular.woff") format("woff"),
+    local("Big Bird Standard");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
 
 :root {
-  --cream:      #F2EDE3;
-  --parchment:  #E8E0CC;
-  --red:        #8B3A2A;
-  --red-light:  #C0503C;
-  --brown-dark: #2E1A14;
-  --brown-mid:  #6B4035;
-  --linen:      #D9CFC0;
-  --kraft:      #B8A898;
+  --cream: #f2ede3;
+  --parchment: #f5f2eb;
+  --parchment-deep: #e8e0cc;
+  --red: #8b3a2a;
+  --red-light: #c0503c;
+  --brown-dark: #2e1a14;
+  --brown-mid: #6b4035;
+  --linen: #d9cfc0;
+  --kraft: #b8a898;
 }
 
 * {
@@ -26,7 +28,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   overscroll-behavior: none;
 }
@@ -34,12 +37,12 @@ html, body {
 body {
   background: var(--cream);
   color: var(--brown-dark);
-  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-family: var(--font-geist), system-ui, sans-serif;
 }
 
 /* Paper grain overlay */
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
@@ -53,23 +56,24 @@ body::before {
   background: var(--parchment);
   border: 1.5px solid var(--linen);
   border-radius: 3px;
-  box-shadow: 2px 3px 0px var(--linen), 4px 6px 12px rgba(46,26,20,0.08);
+  box-shadow:
+    2px 3px 0px var(--linen),
+    4px 6px 12px rgba(46, 26, 20, 0.08);
   padding: 1.5rem;
 }
 
 /* Primary stamp button */
 .btn-primary {
-  font-family: 'BigBird', serif;
+  font-family: "BigBird", serif;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   background: var(--red);
   color: var(--cream);
   border: none;
-  border-radius: 2px;
+  border-radius: 4px;
   padding: 14px 28px;
   font-size: 0.85rem;
-  box-shadow: 3px 3px 0 var(--brown-dark);
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition: transform 0.1s;
   cursor: pointer;
   min-height: 52px;
   display: flex;
@@ -78,8 +82,7 @@ body::before {
   width: 100%;
 }
 .btn-primary:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 var(--brown-dark);
+  transform: translate(1px, 1px);
 }
 .btn-primary:disabled {
   opacity: 0.45;
@@ -88,17 +91,16 @@ body::before {
 
 /* Ghost button */
 .btn-ghost {
-  font-family: 'BigBird', serif;
+  font-family: "BigBird", serif;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   background: transparent;
   color: var(--red);
   border: 1.5px solid var(--red);
-  border-radius: 2px;
+  border-radius: 4px;
   padding: 14px 28px;
   font-size: 0.85rem;
-  box-shadow: 2px 2px 0 var(--linen);
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition: transform 0.1s;
   cursor: pointer;
   min-height: 52px;
   display: flex;
@@ -108,7 +110,6 @@ body::before {
 }
 .btn-ghost:active {
   transform: translate(1px, 1px);
-  box-shadow: 0px 0px 0 var(--linen);
 }
 .btn-ghost:disabled {
   opacity: 0.35;
@@ -116,12 +117,13 @@ body::before {
 }
 
 /* Inputs */
-input, textarea {
+input,
+textarea {
   background: transparent;
   border: none;
   border-bottom: 1.5px solid var(--brown-mid);
   border-radius: 0;
-  font-family: 'Courier Prime', monospace;
+  font-family: var(--font-geist), sans-serif;
   color: var(--brown-dark);
   padding: 8px 4px;
   font-size: 1rem;
@@ -130,7 +132,6 @@ input, textarea {
 }
 input::placeholder {
   color: var(--kraft);
-  font-style: italic;
 }
 input:focus {
   border-bottom-color: var(--red);
@@ -138,7 +139,7 @@ input:focus {
 
 /* Room code stamp */
 .room-code {
-  font-family: 'BigBird', serif;
+  font-family: "BigBird", serif;
   font-size: 3rem;
   letter-spacing: 0.35em;
   color: var(--red);
@@ -150,43 +151,15 @@ input:focus {
   background: var(--parchment);
 }
 
-/* Active word */
+/* Active word — display/2 for the hero word on the active player's screen */
 .active-word {
-  font-family: 'Pinyon Script', cursive;
-  font-size: clamp(3rem, 12vw, 5.5rem);
+  font-family: var(--font-fraunces), serif;
+  font-size: clamp(2.75rem, 10vw, 4.5rem);
+  font-weight: 300;
+  letter-spacing: -0.03em;
   color: var(--brown-dark);
   text-align: center;
-  line-height: 1.2;
-  text-shadow: 1px 1px 0px rgba(46,26,20,0.15);
-}
-
-/* Timer bar */
-.timer-bar {
-  height: 3px;
-  background: var(--linen);
-  border-radius: 0;
-  width: 100%;
-}
-.timer-fill {
-  height: 100%;
-  background: var(--red);
-  transition: width 1s linear;
-}
-.timer-fill.urgent {
-  animation: pulse-red-opacity 0.8s ease-in-out infinite;
-}
-
-/* Round banner */
-.round-banner {
-  font-family: 'BigBird', serif;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  font-size: 0.7rem;
-  color: var(--cream);
-  background: var(--red);
-  padding: 8px 16px;
-  text-align: center;
-  width: 100%;
+  line-height: 1.15;
 }
 
 /* Decorative divider */
@@ -205,22 +178,29 @@ input:focus {
 
 /* Screen transitions */
 @keyframes fade-through {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 .fade-in {
   animation: fade-through 0.25s ease-out;
 }
 
-@keyframes pulse-red-opacity {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-
 @keyframes bounce-in {
-  0% { transform: scale(0.9); opacity: 0; }
-  60% { transform: scale(1.03); }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 .bounce-in {
   animation: bounce-in 0.35s ease-out;
@@ -228,7 +208,7 @@ input:focus {
 
 /* Stamp number for word inputs */
 .stamp-num {
-  font-family: 'BigBird', serif;
+  font-family: "BigBird", serif;
   letter-spacing: 0.1em;
   font-size: 0.7rem;
   color: var(--kraft);

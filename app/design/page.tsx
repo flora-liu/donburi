@@ -2,11 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-
-const FONT_BODY = "var(--font-geist), sans-serif";
-const FONT_DISPLAY = "var(--font-fraunces), serif";
-const FONT_STAMP = "'BigBird', serif";
-const FONT_SCRIPT = "'Pinyon Script', cursive";
+import { FONT_BODY, FONT_DISPLAY, FONT_STAMP } from "@/lib/typography";
+import { TimerRing } from "@/components/TimerRing";
 
 // ─── Color palette ────────────────────────────────────────────────────────────
 
@@ -15,8 +12,14 @@ const COLORS: { name: string; token: string; hex: string; usage: string }[] = [
   {
     name: "Parchment",
     token: "--parchment",
+    hex: "#F5F2EB",
+    usage: "Default card background",
+  },
+  {
+    name: "Parchment deep",
+    token: "--parchment-deep",
     hex: "#E8E0CC",
-    usage: "Card background, secondary surfaces",
+    usage: "Accent / special card background, stamped elements",
   },
   {
     name: "Red",
@@ -86,14 +89,14 @@ const DISPLAY_SCALE: TypeEntry[] = [
   },
   {
     name: "display/2",
-    family: "Fraunces 400",
-    rule: "48px · weight 400 · tracking -0.03em",
+    family: "Fraunces 300",
+    rule: "48px · weight 300 · tracking -0.03em",
     sample: "Fishbowl",
     usage: "Active word during a turn, round names on round-intro cards.",
     style: {
       fontFamily: FONT_DISPLAY,
       fontSize: "48px",
-      fontWeight: 400,
+      fontWeight: 300,
       letterSpacing: "-0.03em",
       color: "var(--brown-dark)",
       lineHeight: 1.15,
@@ -101,14 +104,14 @@ const DISPLAY_SCALE: TypeEntry[] = [
   },
   {
     name: "display/3",
-    family: "Fraunces 500",
-    rule: "32px · weight 500 · tracking -0.02em",
+    family: "Fraunces 300",
+    rule: "32px · weight 300 · tracking -0.02em",
     sample: "Built for real teams.",
     usage: "Section-level headlines, subtitles.",
     style: {
       fontFamily: FONT_DISPLAY,
       fontSize: "32px",
-      fontWeight: 500,
+      fontWeight: 300,
       letterSpacing: "-0.02em",
       color: "var(--brown-dark)",
       lineHeight: 1.2,
@@ -136,27 +139,29 @@ const UI_SCALE: TypeEntry[] = [
   {
     name: "stamp heading",
     family: "Big Bird Standard",
-    rule: "uppercase · 0.95–1.1rem · color brown-dark",
+    rule: "uppercase · 16px · color brown-dark",
     sample: "NEW GAME",
     usage: "Section headings, page titles, card labels.",
     style: {
       fontFamily: FONT_STAMP,
       textTransform: "uppercase",
-      fontSize: "1rem",
+      fontSize: "16px",
       color: "var(--brown-dark)",
     },
   },
   {
     name: "stamp label",
-    family: "Big Bird Standard",
-    rule: "uppercase · 0.75–0.9rem · color brown-dark",
-    sample: "PLAYERS",
+    family: "Fraunces 300",
+    rule: "18px · weight 300 · tracking -0.015em · line-height 1.3",
+    sample: "Players",
     usage: "Card section labels, team badges, round indicator.",
     style: {
-      fontFamily: FONT_STAMP,
-      textTransform: "uppercase",
-      fontSize: "0.85rem",
+      fontFamily: FONT_DISPLAY,
+      fontSize: "18px",
+      fontWeight: 300,
+      letterSpacing: "-0.015em",
       color: "var(--brown-dark)",
+      lineHeight: 1.3,
     },
   },
   {
@@ -177,12 +182,12 @@ const UI_SCALE: TypeEntry[] = [
   {
     name: "input label",
     family: "Geist Mono",
-    rule: "uppercase · tracking 0.1em · 0.7rem · color kraft",
+    rule: "uppercase · tracking 0.1em · 12px · color kraft",
     sample: "ROOM CODE",
     usage: "Labels above form inputs, column headers, small meta labels.",
     style: {
       fontFamily: FONT_BODY,
-      fontSize: "0.7rem",
+      fontSize: "12px",
       color: "var(--kraft)",
       textTransform: "uppercase",
       letterSpacing: "0.1em",
@@ -251,22 +256,6 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Callout({ children }: { children: React.ReactNode }) {
-  return (
-    <p
-      style={{
-        fontFamily: FONT_BODY,
-        fontSize: "0.8rem",
-        color: "var(--kraft)",
-        fontStyle: "italic",
-        marginTop: "0.5rem",
-      }}
-    >
-      {children}
-    </p>
-  );
-}
-
 function RoomCodeButton({ code = "NG5QK" }: { code?: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -303,7 +292,7 @@ function RoomCodeButton({ code = "NG5QK" }: { code?: string }) {
         style={{
           fontFamily: FONT_STAMP,
           fontSize: "3rem",
-          letterSpacing: "0.35em",
+          letterSpacing: "0.1rem",
           color: "var(--red)",
           textTransform: "uppercase",
           lineHeight: 1,
@@ -315,86 +304,24 @@ function RoomCodeButton({ code = "NG5QK" }: { code?: string }) {
       </span>
       <span
         style={{
-          fontSize: "1.5rem",
-          lineHeight: 1,
           display: "inline-flex",
           alignItems: "center",
+          color: "var(--red)",
           transition: "opacity 0.15s",
         }}
       >
-        {copied ? "✅" : "🔗"}
+        {copied ? (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polyline points="5 12 10 17 19 7" />
+          </svg>
+        ) : (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1" />
+            <path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1" />
+          </svg>
+        )}
       </span>
     </button>
-  );
-}
-
-function TimerRing({
-  seconds,
-  total = 60,
-  size = 56,
-  strokeWidth = 3,
-}: {
-  seconds: number;
-  total?: number;
-  size?: number;
-  strokeWidth?: number;
-}) {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const fraction = Math.max(0, Math.min(1, seconds / total));
-  const isUrgent = seconds <= 10;
-  const color = isUrgent ? "var(--red)" : "var(--brown-dark)";
-
-  return (
-    <div
-      style={{
-        position: "relative",
-        width: size,
-        height: size,
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <svg
-        width={size}
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        style={{ transform: "rotate(-90deg)" }}
-      >
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="var(--linen)"
-          strokeWidth={strokeWidth}
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={circumference * (1 - fraction)}
-          style={{ transition: "stroke-dashoffset 1s linear, stroke 0.3s" }}
-        />
-      </svg>
-      <span
-        style={{
-          position: "absolute",
-          fontFamily: FONT_BODY,
-          fontSize: "14px",
-          fontWeight: 500,
-          color: color,
-        }}
-      >
-        {seconds}
-      </span>
-    </div>
   );
 }
 
@@ -507,7 +434,7 @@ export default function DesignPage() {
             textDecoration: "none",
           }}
         >
-          ← back to app
+          ← Back to app
         </Link>
         <h1
           style={{
@@ -953,7 +880,7 @@ export default function DesignPage() {
               style={{
                 fontFamily: FONT_DISPLAY,
                 fontSize: "32px",
-                fontWeight: 500,
+                fontWeight: 300,
                 letterSpacing: "-0.02em",
                 color: "var(--cream)",
                 lineHeight: 1.1,
@@ -1075,8 +1002,8 @@ export default function DesignPage() {
               <strong style={{ color: "var(--brown-dark)" }}>
                 Three fonts, no more.
               </strong>{" "}
-              Fraunces for the logo, BigBird for stamps, Geist Mono for
-              everything else. Pinyon Script is reserved for the in-game word.
+              Fraunces for display type, BigBird for stamps, Geist Mono for body
+              and UI.
             </li>
             <li>
               <strong style={{ color: "var(--brown-dark)" }}>
