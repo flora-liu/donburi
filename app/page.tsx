@@ -124,6 +124,7 @@ export default function Home() {
             style={{
               ...TYPE.display1,
               fontSize: "clamp(3rem, 11vw, 64px)",
+              color: "var(--brown-mid)",
               marginBottom: "0.5rem",
             }}
           >
