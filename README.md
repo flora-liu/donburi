@@ -176,7 +176,7 @@ Both Pusher and Upstash free tiers are plenty for house-party use (200k messages
 
 ## Design
 
-Visual aesthetic: **Vintage Paper Archive** — warm cream + red palette, letterpress stamp buttons, cursive display type, paper-grain overlay. Fonts: *Big Bird Standard* for stamp labels, *Pinyon Script* for display, *Courier Prime* for body.
+Visual aesthetic: **vintage paper archive** — warm cream + red palette, letterpress stamp buttons, cursive display type, paper-grain overlay. Fonts: *Big Bird Standard* for stamp labels, *Pinyon Script* for display, *Courier Prime* for body.
 
 ## Project structure
 
