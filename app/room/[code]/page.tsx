@@ -405,7 +405,7 @@ function RoomCodeButton({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
-    navigator.clipboard.writeText(code).then(() => {
+    navigator.clipboard.writeText(`https://fishbowl.cloudie.app/room/${code}`).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     });
