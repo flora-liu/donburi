@@ -208,6 +208,8 @@ export default function Home() {
         onClick={() => {
           setView("home");
           setError("");
+          setCode("");
+          if (window.location.search) router.replace("/");
         }}
       >
         ← Back

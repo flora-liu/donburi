@@ -91,6 +91,7 @@ export default function RoomPage({
   const pusherRef = useRef<Pusher | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerEndedRef = useRef(false);
+  const wasInRoomRef = useRef(false);
 
   useEffect(() => {
     const id = localStorage.getItem(`player:${code}`);
@@ -110,7 +111,14 @@ export default function RoomPage({
     if (!room) return;
     const inRoom =
       playerId !== null && room.players.some((p) => p.id === playerId);
-    if (!inRoom && room.status === "lobby") {
+    if (inRoom) {
+      wasInRoomRef.current = true;
+      return;
+    }
+    if (room.status !== "lobby") return;
+    if (wasInRoomRef.current) {
+      router.replace("/");
+    } else {
       router.replace(`/?join=${room.code}`);
     }
   }, [room, playerId, router]);
