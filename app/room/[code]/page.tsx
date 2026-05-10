@@ -3,7 +3,7 @@
 import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Pusher from "pusher-js";
-import { Room, RoundType, Word } from "@/types/game";
+import { Player, Room, RoundType, Word } from "@/types/game";
 import { getRoundName, getRoundRule, getTotalScore } from "@/lib/game-logic";
 import { TYPE, teamBadge, FONT_STAMP } from "@/lib/typography";
 import { TimerRing } from "@/components/TimerRing";
@@ -85,6 +85,7 @@ export default function RoomPage({
   const [timeLeft, setTimeLeft] = useState(TURN_DURATION);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [teamRosterOpen, setTeamRosterOpen] = useState(false);
   const pusherRef = useRef<Pusher | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerEndedRef = useRef(false);
@@ -299,7 +300,14 @@ export default function RoomPage({
         }}
       >
         <span style={{ justifySelf: "start" }}>
-          <span style={teamBadge}>{TEAM_LABELS[me.teamIndex]}</span>
+          <button
+            type="button"
+            onClick={() => setTeamRosterOpen(true)}
+            aria-label="View all teams and players"
+            style={{ ...teamBadge, cursor: "pointer", appearance: "none" }}
+          >
+            {TEAM_LABELS[me.teamIndex]}
+          </button>
         </span>
         <Link
           href="/"
@@ -395,6 +403,14 @@ export default function RoomPage({
           />
         )}
       </div>
+
+      {teamRosterOpen && (
+        <TeamRosterModal
+          room={room}
+          playerId={playerId}
+          onClose={() => setTeamRosterOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -405,10 +421,12 @@ function RoomCodeButton({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
-    navigator.clipboard.writeText(`https://fishbowl.cloudie.app/room/${code}`).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
-    });
+    navigator.clipboard
+      .writeText(`https://fishbowl.cloudie.app/room/${code}`)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1600);
+      });
   }
 
   return (
@@ -485,6 +503,176 @@ function RoomCodeButton({ code }: { code: string }) {
   );
 }
 
+// ─── Team roster (shared between lobby and modal) ─────────────────────────────
+
+function TeamRoster({
+  teamIdx,
+  players,
+  hostId,
+  playerId,
+}: {
+  teamIdx: number;
+  players: Player[];
+  hostId: string;
+  playerId: string;
+}) {
+  const teamPlayers = players.filter((p) => p.teamIndex === teamIdx);
+  return (
+    <div className="card">
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "14px",
+        }}
+      >
+        <span style={teamBadge}>{TEAM_LABELS[teamIdx]}</span>
+        <span style={{ ...TYPE.body, color: "var(--kraft)" }}>
+          {teamPlayers.length} player
+          {teamPlayers.length !== 1 ? "s" : ""}
+        </span>
+      </div>
+      {teamPlayers.length > 0 ? (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+          }}
+        >
+          {teamPlayers.map((p) => {
+            const isMe = p.id === playerId;
+            const isHostPlayer = p.id === hostId;
+            const indicators = [isMe && "You", isHostPlayer && "Host"].filter(
+              Boolean,
+            );
+            return (
+              <div
+                key={p.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "12px 16px",
+                  border: "1.5px dashed var(--linen)",
+                  borderRadius: "6px",
+                }}
+              >
+                <span style={{ ...TYPE.body, color: "var(--brown-dark)" }}>
+                  {isMe ? "You" : p.name}
+                </span>
+                {indicators.length > 0 && (
+                  <span
+                    style={{
+                      fontFamily: FONT_STAMP,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                      color: isMe ? "var(--red)" : "var(--kraft)",
+                    }}
+                  >
+                    {indicators.join(" · ")}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <p style={{ ...TYPE.body, color: "var(--kraft)" }}>
+          Waiting for players…
+        </p>
+      )}
+    </div>
+  );
+}
+
+function TeamRosterModal({
+  room,
+  playerId,
+  onClose,
+}: {
+  room: Room;
+  playerId: string;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      onClick={onClose}
+      className="fade-in"
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "var(--parchment)",
+        zIndex: 50,
+        padding: "20px",
+        overflowY: "auto",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%",
+          maxWidth: "480px",
+          margin: "0 auto",
+          minHeight: "100%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: "16px",
+          paddingBottom: "36px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+          }}
+        >
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              fontFamily: FONT_STAMP,
+              color: "var(--kraft)",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "48px",
+              lineHeight: 1,
+              padding: "4px 8px",
+            }}
+          >
+            ×
+          </button>
+        </div>
+        <TeamRoster
+          teamIdx={0}
+          players={room.players}
+          hostId={room.hostId}
+          playerId={playerId}
+        />
+        <TeamRoster
+          teamIdx={1}
+          players={room.players}
+          hostId={room.hostId}
+          playerId={playerId}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ─── Lobby ────────────────────────────────────────────────────────────────────
 
 const ROUND_TYPE_OPTIONS: RoundType[] = ["describe", "charades", "oneWord"];
@@ -535,85 +723,15 @@ function LobbyPhase({
 
       <Divider />
 
-      {[0, 1].map((teamIdx) => {
-        const teamPlayers = room.players.filter((p) => p.teamIndex === teamIdx);
-        return (
-          <div key={teamIdx} className="card">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "14px",
-              }}
-            >
-              <span style={teamBadge}>{TEAM_LABELS[teamIdx]}</span>
-              <span style={{ ...TYPE.body, color: "var(--kraft)" }}>
-                {teamPlayers.length} player
-                {teamPlayers.length !== 1 ? "s" : ""}
-              </span>
-            </div>
-            {teamPlayers.length > 0 ? (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                {teamPlayers.map((p) => {
-                  const isMe = p.id === playerId;
-                  const isHostPlayer = p.id === room.hostId;
-                  const indicators = [
-                    isMe && "You",
-                    isHostPlayer && "Host",
-                  ].filter(Boolean);
-                  return (
-                    <div
-                      key={p.id}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "12px 16px",
-                        border: "1.5px dashed var(--linen)",
-                        borderRadius: "6px",
-                      }}
-                    >
-                      <span
-                        style={{ ...TYPE.body, color: "var(--brown-dark)" }}
-                      >
-                        {isMe ? "You" : p.name}
-                      </span>
-                      {indicators.length > 0 && (
-                        <span
-                          style={{
-                            fontFamily: FONT_STAMP,
-                            textTransform: "uppercase",
-                            letterSpacing: "0.05em",
-                            color: isMe ? "var(--red)" : "var(--kraft)",
-                          }}
-                        >
-                          {indicators.join(" · ")}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p
-                style={{
-                  ...TYPE.body,
-                  color: "var(--kraft)",
-                }}
-              >
-                Waiting for players…
-              </p>
-            )}
-          </div>
-        );
-      })}
+      {[0, 1].map((teamIdx) => (
+        <TeamRoster
+          key={teamIdx}
+          teamIdx={teamIdx}
+          players={room.players}
+          hostId={room.hostId}
+          playerId={playerId}
+        />
+      ))}
 
       {isHost && (
         <>
