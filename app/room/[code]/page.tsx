@@ -2,6 +2,7 @@
 
 import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Pusher from "pusher-js";
 import { Player, Room, RoundType, Word } from "@/types/game";
 import { getRoundName, getRoundRule, getTotalScore } from "@/lib/game-logic";
@@ -79,6 +80,7 @@ export default function RoomPage({
   params: Promise<{ code: string }>;
 }) {
   const { code } = use(params);
+  const router = useRouter();
   const [room, setRoom] = useState<Room | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
@@ -103,6 +105,15 @@ export default function RoomPage({
       })
       .catch(() => {});
   }, [code]);
+
+  useEffect(() => {
+    if (!room) return;
+    const inRoom =
+      playerId !== null && room.players.some((p) => p.id === playerId);
+    if (!inRoom && room.status === "lobby") {
+      router.replace(`/?join=${room.code}`);
+    }
+  }, [room, playerId, router]);
 
   useEffect(() => {
     if (!playerId) return;
@@ -269,6 +280,16 @@ export default function RoomPage({
   }
 
   if (!playerId || !room.players.find((p) => p.id === playerId)) {
+    if (room.status === "lobby") {
+      return (
+        <div
+          className="flex items-center justify-center fade-in"
+          style={{ height: "100dvh" }}
+        >
+          <p style={TYPE.display4}>Joining…</p>
+        </div>
+      );
+    }
     return (
       <div
         className="flex flex-col items-center justify-center px-6"

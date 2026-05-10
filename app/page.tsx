@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { TYPE } from "@/lib/typography";
 
@@ -58,6 +58,14 @@ export default function Home() {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const joinCode = new URLSearchParams(window.location.search).get("join");
+    if (joinCode) {
+      setCode(joinCode.toUpperCase());
+      setView("join");
+    }
+  }, []);
 
   async function handleCreate() {
     if (!name.trim()) {
