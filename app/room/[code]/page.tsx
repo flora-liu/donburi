@@ -252,6 +252,11 @@ export default function RoomPage({
     setLoading(false);
   }
 
+  async function handleRemovePlayer(target: Player) {
+    if (!window.confirm(`Remove ${target.name} from the room?`)) return;
+    await post("remove-player", { targetPlayerId: target.id });
+  }
+
   if (!room) {
     return (
       <div
@@ -267,11 +272,24 @@ export default function RoomPage({
     return (
       <div
         className="flex flex-col items-center justify-center px-6"
-        style={{ height: "100dvh" }}
+        style={{ height: "100dvh", gap: "20px" }}
       >
         <p style={{ ...TYPE.body, textAlign: "center" }}>
           You are not in this room. Please join from the home screen.
         </p>
+        <Link
+          href="/"
+          className="btn-ghost"
+          style={{
+            textDecoration: "none",
+            width: "auto",
+            display: "inline-flex",
+            minHeight: "auto",
+            padding: "10px 20px",
+          }}
+        >
+          Home
+        </Link>
       </div>
     );
   }
@@ -359,6 +377,7 @@ export default function RoomPage({
             isHost={isHost}
             loading={loading}
             onStart={handleStartSubmission}
+            onRemovePlayer={isHost ? handleRemovePlayer : undefined}
           />
         )}
         {room.status === "submitting" && (
@@ -409,6 +428,9 @@ export default function RoomPage({
           room={room}
           playerId={playerId}
           onClose={() => setTeamRosterOpen(false)}
+          onRemovePlayer={
+            isHost && room.status === "lobby" ? handleRemovePlayer : undefined
+          }
         />
       )}
     </div>
@@ -510,11 +532,13 @@ function TeamRoster({
   players,
   hostId,
   playerId,
+  onRemove,
 }: {
   teamIdx: number;
   players: Player[];
   hostId: string;
   playerId: string;
+  onRemove?: (player: Player) => void;
 }) {
   const teamPlayers = players.filter((p) => p.teamIndex === teamIdx);
   return (
@@ -547,6 +571,7 @@ function TeamRoster({
             const indicators = [isMe && "You", isHostPlayer && "Host"].filter(
               Boolean,
             );
+            const canRemove = !!onRemove && !isHostPlayer;
             return (
               <div
                 key={p.id}
@@ -557,23 +582,63 @@ function TeamRoster({
                   padding: "12px 16px",
                   border: "1.5px dashed var(--linen)",
                   borderRadius: "6px",
+                  gap: "10px",
                 }}
               >
                 <span style={{ ...TYPE.body, color: "var(--brown-dark)" }}>
                   {isMe ? "You" : p.name}
                 </span>
-                {indicators.length > 0 && (
-                  <span
-                    style={{
-                      fontFamily: FONT_STAMP,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                      color: isMe ? "var(--red)" : "var(--kraft)",
-                    }}
-                  >
-                    {indicators.join(" · ")}
-                  </span>
-                )}
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                  }}
+                >
+                  {indicators.length > 0 && (
+                    <span
+                      style={{
+                        fontFamily: FONT_STAMP,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        color: isMe ? "var(--red)" : "var(--kraft)",
+                      }}
+                    >
+                      {indicators.join(" · ")}
+                    </span>
+                  )}
+                  {canRemove && (
+                    <button
+                      type="button"
+                      onClick={() => onRemove!(p)}
+                      aria-label={`Remove ${p.name}`}
+                      style={{
+                        fontFamily: FONT_STAMP,
+                        textTransform: "lowercase",
+                        color: "var(--red)",
+                        background: "transparent",
+                        border: "1.5px solid var(--red)",
+                        borderRadius: "999px",
+                        cursor: "pointer",
+                        width: "26px",
+                        height: "26px",
+                        lineHeight: 1,
+                        padding: 0,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <span
+                        style={{
+                          transform: "translateY(-2px)",
+                        }}
+                      >
+                        x
+                      </span>
+                    </button>
+                  )}
+                </span>
               </div>
             );
           })}
@@ -591,10 +656,12 @@ function TeamRosterModal({
   room,
   playerId,
   onClose,
+  onRemovePlayer,
 }: {
   room: Room;
   playerId: string;
   onClose: () => void;
+  onRemovePlayer?: (player: Player) => void;
 }) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -661,12 +728,14 @@ function TeamRosterModal({
           players={room.players}
           hostId={room.hostId}
           playerId={playerId}
+          onRemove={onRemovePlayer}
         />
         <TeamRoster
           teamIdx={1}
           players={room.players}
           hostId={room.hostId}
           playerId={playerId}
+          onRemove={onRemovePlayer}
         />
       </div>
     </div>
@@ -694,7 +763,9 @@ function WordsListModal({
   useEffect(() => {
     let cancelled = false;
     fetch(`/api/room/${room.code}/words`)
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Failed to load words"))))
+      .then((r) =>
+        r.ok ? r.json() : Promise.reject(new Error("Failed to load words")),
+      )
       .then((data: { words: Word[] }) => {
         if (!cancelled) setWords(data.words);
       })
@@ -796,12 +867,14 @@ function LobbyPhase({
   isHost,
   loading,
   onStart,
+  onRemovePlayer,
 }: {
   room: Room;
   playerId: string;
   isHost: boolean;
   loading: boolean;
   onStart: (wordsPerPerson: number, enabledRoundTypes: RoundType[]) => void;
+  onRemovePlayer?: (player: Player) => void;
 }) {
   const [wordsPerPerson, setWordsPerPerson] = useState(room.wordsPerPerson);
   const [enabled, setEnabled] = useState<Set<RoundType>>(
@@ -843,6 +916,7 @@ function LobbyPhase({
           players={room.players}
           hostId={room.hostId}
           playerId={playerId}
+          onRemove={onRemovePlayer}
         />
       ))}
 
@@ -1335,131 +1409,137 @@ function RoundEndPhase({
 
   return (
     <>
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        flex: 1,
-        gap: "20px",
-      }}
-      className="fade-in"
-    >
       <div
         style={{
-          background: "var(--brown-mid)",
-          padding: "24px 32px",
-          borderRadius: "4px",
-          textAlign: "center",
-          width: "100%",
-          marginBottom: "4px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          flex: 1,
+          gap: "20px",
         }}
+        className="fade-in"
       >
-        <p
+        <div
           style={{
-            ...TYPE.stampHeading,
-            color: "var(--cream)",
+            background: "var(--brown-mid)",
+            padding: "24px 32px",
+            borderRadius: "4px",
+            textAlign: "center",
+            width: "100%",
+            marginBottom: "4px",
           }}
         >
-          End of round {currentRoundNumber}
-        </p>
-        <p
-          style={{ ...TYPE.display3, color: "var(--cream)", marginTop: "4px" }}
-        >
-          {getRoundName(currentType)}
-        </p>
-      </div>
-
-      <div className="card w-full">
-        <p style={{ ...TYPE.stampLabel, marginBottom: "14px" }}>Scores</p>
-        {[0, 1].map((t) => (
-          <div
-            key={t}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: "10px",
-            }}
-          >
-            <span style={teamBadge}>{TEAM_LABELS[t]}</span>
-            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-              {room.scores[t].map((s, r) => (
-                <span
-                  key={r}
-                  style={{
-                    ...TYPE.body,
-                    fontSize: "13px",
-                    padding: "2px 6px",
-                    background:
-                      r <= room.currentRoundIndex
-                        ? "var(--linen)"
-                        : "transparent",
-                    color:
-                      r <= room.currentRoundIndex
-                        ? "var(--brown-dark)"
-                        : "var(--kraft)",
-                    borderRadius: "3px",
-                  }}
-                >
-                  {r <= room.currentRoundIndex ? s : "—"}
-                </span>
-              ))}
-              <span
-                style={{
-                  ...TYPE.stampLabel,
-                  fontSize: "16px",
-                  color: "var(--brown-dark)",
-                  marginLeft: "6px",
-                }}
-              >
-                {room.scores[t]
-                  .slice(0, room.currentRoundIndex + 1)
-                  .reduce((a, b) => a + b, 0)}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <button
-        type="button"
-        className="btn-ghost"
-        onClick={() => setWordsOpen(true)}
-      >
-        View all words
-      </button>
-
-      {nextType && (
-        <div className="card w-full">
           <p
             style={{
-              ...TYPE.stampLabel,
-              color: "var(--red)",
-              marginBottom: "4px",
+              ...TYPE.stampHeading,
+              color: "var(--cream)",
             }}
           >
-            Round {nextIndex + 1} of {totalRounds}
+            End of round {currentRoundNumber}
           </p>
-          <p style={TYPE.display3}>{getRoundName(nextType)}</p>
-          <p style={{ ...TYPE.body, marginTop: "6px" }}>
-            {getRoundRule(nextType)}
+          <p
+            style={{
+              ...TYPE.display3,
+              color: "var(--cream)",
+              marginTop: "4px",
+            }}
+          >
+            {getRoundName(currentType)}
           </p>
         </div>
-      )}
 
-      <button className="btn-primary" onClick={onNext} disabled={loading}>
-        {loading
-          ? "..."
-          : nextType
-            ? `Start Round ${nextIndex + 1}`
-            : "Final Results"}
-      </button>
-    </div>
-    {wordsOpen && (
-      <WordsListModal room={room} onClose={() => setWordsOpen(false)} />
-    )}
+        <div className="card w-full">
+          <p style={{ ...TYPE.stampLabel, marginBottom: "14px" }}>Scores</p>
+          {[0, 1].map((t) => (
+            <div
+              key={t}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "10px",
+              }}
+            >
+              <span style={teamBadge}>{TEAM_LABELS[t]}</span>
+              <div
+                style={{ display: "flex", gap: "6px", alignItems: "center" }}
+              >
+                {room.scores[t].map((s, r) => (
+                  <span
+                    key={r}
+                    style={{
+                      ...TYPE.body,
+                      fontSize: "13px",
+                      padding: "2px 6px",
+                      background:
+                        r <= room.currentRoundIndex
+                          ? "var(--linen)"
+                          : "transparent",
+                      color:
+                        r <= room.currentRoundIndex
+                          ? "var(--brown-dark)"
+                          : "var(--kraft)",
+                      borderRadius: "3px",
+                    }}
+                  >
+                    {r <= room.currentRoundIndex ? s : "—"}
+                  </span>
+                ))}
+                <span
+                  style={{
+                    ...TYPE.stampLabel,
+                    fontSize: "16px",
+                    color: "var(--brown-dark)",
+                    marginLeft: "6px",
+                  }}
+                >
+                  {room.scores[t]
+                    .slice(0, room.currentRoundIndex + 1)
+                    .reduce((a, b) => a + b, 0)}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          className="btn-ghost"
+          onClick={() => setWordsOpen(true)}
+        >
+          View all words
+        </button>
+
+        {nextType && (
+          <div className="card w-full">
+            <p
+              style={{
+                ...TYPE.stampLabel,
+                color: "var(--red)",
+                marginBottom: "4px",
+              }}
+            >
+              Round {nextIndex + 1} of {totalRounds}
+            </p>
+            <p style={TYPE.display3}>{getRoundName(nextType)}</p>
+            <p style={{ ...TYPE.body, marginTop: "6px" }}>
+              {getRoundRule(nextType)}
+            </p>
+          </div>
+        )}
+
+        <button className="btn-primary" onClick={onNext} disabled={loading}>
+          {loading
+            ? "..."
+            : nextType
+              ? `Start Round ${nextIndex + 1}`
+              : "Final Results"}
+        </button>
+      </div>
+      {wordsOpen && (
+        <WordsListModal room={room} onClose={() => setWordsOpen(false)} />
+      )}
     </>
   );
 }
