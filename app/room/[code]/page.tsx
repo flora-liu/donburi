@@ -673,6 +673,119 @@ function TeamRosterModal({
   );
 }
 
+function WordsListModal({
+  room,
+  onClose,
+}: {
+  room: Room;
+  onClose: () => void;
+}) {
+  const [words, setWords] = useState<Word[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/room/${room.code}/words`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Failed to load words"))))
+      .then((data: { words: Word[] }) => {
+        if (!cancelled) setWords(data.words);
+      })
+      .catch((e: Error) => {
+        if (!cancelled) setError(e.message);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [room.code]);
+
+  return (
+    <div
+      onClick={onClose}
+      className="fade-in"
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "var(--parchment)",
+        zIndex: 50,
+        padding: "20px",
+        overflowY: "auto",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%",
+          maxWidth: "480px",
+          margin: "0 auto",
+          minHeight: "100%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: "16px",
+          paddingBottom: "36px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+          }}
+        >
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              fontFamily: FONT_STAMP,
+              color: "var(--kraft)",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "48px",
+              lineHeight: 1,
+              padding: "4px 8px",
+            }}
+          >
+            ×
+          </button>
+        </div>
+        <div className="card w-full">
+          <p style={{ ...TYPE.stampLabel, marginBottom: "14px" }}>Words</p>
+          {error ? (
+            <p style={{ ...TYPE.body, color: "var(--kraft)" }}>{error}</p>
+          ) : words === null ? (
+            <p style={{ ...TYPE.body, color: "var(--kraft)" }}>Loading…</p>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                columnGap: "16px",
+                rowGap: "8px",
+              }}
+            >
+              {words.map((w) => (
+                <p key={w.id} style={TYPE.body}>
+                  {w.text}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Lobby ────────────────────────────────────────────────────────────────────
 
 const ROUND_TYPE_OPTIONS: RoundType[] = ["describe", "charades", "oneWord"];
@@ -1218,8 +1331,10 @@ function RoundEndPhase({
   const nextIndex = room.currentRoundIndex + 1;
   const nextType = room.enabledRoundTypes[nextIndex];
   const currentType = room.enabledRoundTypes[room.currentRoundIndex];
+  const [wordsOpen, setWordsOpen] = useState(false);
 
   return (
+    <>
     <div
       style={{
         display: "flex",
@@ -1308,6 +1423,14 @@ function RoundEndPhase({
         ))}
       </div>
 
+      <button
+        type="button"
+        className="btn-ghost"
+        onClick={() => setWordsOpen(true)}
+      >
+        View all words
+      </button>
+
       {nextType && (
         <div className="card w-full">
           <p
@@ -1334,6 +1457,10 @@ function RoundEndPhase({
             : "Final Results"}
       </button>
     </div>
+    {wordsOpen && (
+      <WordsListModal room={room} onClose={() => setWordsOpen(false)} />
+    )}
+    </>
   );
 }
 
