@@ -29,7 +29,11 @@ export async function POST(req: NextRequest) {
   room.activePlayerId = null
   room.turnStartedAt = null
   room.skippedWordId = null
-  room.currentTeamIndex = 1 - room.currentTeamIndex
+  // Skip team flip when previous round ended via bowl-clear with leftover time;
+  // that team's player continues their turn into this round.
+  if (room.carryOverTime == null) {
+    room.currentTeamIndex = 1 - room.currentTeamIndex
+  }
 
   await setRoom(room)
   await pusherServer.trigger(roomChannel(code), 'room-updated', room)

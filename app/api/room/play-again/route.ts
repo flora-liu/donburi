@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
   room.teamTurnIndices = [0, 0]
   room.activePlayerId = null
   room.turnStartedAt = null
+  room.carryOverTime = null
   room.skippedWordId = null
   room.bowl = shuffleArray(originalWords || [])
 

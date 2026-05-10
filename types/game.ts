@@ -33,6 +33,7 @@ export type Room = {
   teamTurnIndices: [number, number]
   activePlayerId: string | null
   turnStartedAt: number | null
+  carryOverTime: number | null
   scores: number[][] // [teamIndex][roundIndex]
   submittedPlayerIds: string[]
   skippedWordId: string | null

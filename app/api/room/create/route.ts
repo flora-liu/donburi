@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
     teamTurnIndices: [0, 0],
     activePlayerId: null,
     turnStartedAt: null,
+    carryOverTime: null,
     scores: createInitialScores(2, DEFAULT_ROUND_TYPES.length),
     submittedPlayerIds: [],
     skippedWordId: null,

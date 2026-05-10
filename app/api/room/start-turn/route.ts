@@ -18,8 +18,16 @@ export async function POST(req: NextRequest) {
   if (room.bowl.length === 0)
     return NextResponse.json({ error: 'Bowl is empty' }, { status: 400 })
 
+  const TURN_DURATION = 60
+  const carryOver = room.carryOverTime
+  // Backdate turnStartedAt so the client's existing TURN_DURATION-based math yields the carry-over remaining seconds.
+  const turnStartedAt = carryOver != null
+    ? Date.now() - (TURN_DURATION - carryOver) * 1000
+    : Date.now()
+
   room.activePlayerId = playerId
-  room.turnStartedAt = Date.now()
+  room.turnStartedAt = turnStartedAt
+  room.carryOverTime = null
   room.skippedWordId = null
 
   await setRoom(room)
@@ -28,7 +36,7 @@ export async function POST(req: NextRequest) {
     activePlayerId: playerId,
     teamIndex: room.currentTeamIndex,
     roundIndex: room.currentRoundIndex,
-    timerDuration: 60,
+    timerDuration: carryOver ?? TURN_DURATION,
   })
 
   const word = drawWord(room.bowl, null)
